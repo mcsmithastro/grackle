@@ -1021,8 +1021,8 @@ c  new (correct) way: (april 4, 2007)
                 if ( tgas(i) > 2.d4 ) then
                    gammaha_eff(i) = 0._DKIND
                 else
-                   pe_eps = max(0.00871 * (0.76_DKIND * d(i,j,k) * dom)**0.235_DKIND,
-     &               0.041_DKIND)
+                   pe_eps = max(0.0149 * (0.76_DKIND * d(i,j,k) * dom)**0.235_DKIND,
+     &               0.07_DKIND)
                    gammaha_eff(i) = gammaha * pe_eps * myisrf(i)
                 endif
             endif

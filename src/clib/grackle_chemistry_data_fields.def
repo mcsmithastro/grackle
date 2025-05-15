@@ -77,6 +77,10 @@ ENTRY(photoelectric_heating, INT, -1) // unset
    epsilon=0.05, G_0=1.7 (in erg s^-1 cm^-3) */
 ENTRY(photoelectric_heating_rate, DOUBLE, 8.5e-26)
 
+/* When photoelectric_heating > 1, this is the norm. of the heating rate
+for G_0 = 1, epsilon = 1, in s^-1 */
+ENTRY(photoelectric_heating_norm, DOUBLE, 1.0e-24)
+
 /* Flag to supply a field for the interstellar radiation field */
 ENTRY(use_isrf_field, INT, 0)
 

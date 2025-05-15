@@ -1333,7 +1333,8 @@ double gammah_rate(double units, chemistry_data *my_chemistry)
         return my_chemistry->photoelectric_heating_rate / units;
     } else { //photoelectric_heating set to 2 or 3
         //User to specify G_0, epsilon set to 0.05 or calculated directly.
-        return 1.0e-24 / units;
+        //Default is 1.0e-24
+        return my_chemistry->photoelectric_heating_norm / units;
     }
 }
 

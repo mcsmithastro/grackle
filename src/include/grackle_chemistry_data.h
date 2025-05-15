@@ -91,6 +91,8 @@ typedef struct
   /* photo-electric heating from irradiated dust */
   int photoelectric_heating;
   double photoelectric_heating_rate;
+  /* When photoelectric_heating > 1, this is the norm. of the heating rate for G = 1, eps = 1 */
+  double photoelectric_heating_norm;
 
   /* Flag to supply a field for the interstellar radiation field */
   int use_isrf_field;
