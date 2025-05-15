@@ -211,6 +211,7 @@ For all on/off integer flags, 0 is off and 1 is on.
     - 3: similar to option 1, except the value of epsilon is calculated
       directly from equation 2 of `Wolfire et al. (1995)
       <https://ui.adsabs.harvard.edu/abs/1995ApJ...443..152W/abstract>`__.
+    - 4: similar to option 2, but epsilon varies as a function of density.
 
 .. c:var:: int dust_recombination_cooling
 

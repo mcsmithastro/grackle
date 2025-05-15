@@ -1012,6 +1012,22 @@ c  new (correct) way: (april 4, 2007)
              endif
           enddo
 
+!     Like option 2, but eps changes as function of density,
+!     Fit to Wolfire+ 2003.
+      else if (igammah .eq. 4) then
+
+          do i = is + 1, ie + 1
+             if (itmask(i)) then
+                if ( tgas(i) > 2.d4 ) then
+                   gammaha_eff(i) = 0._DKIND
+                else
+                   pe_eps = max(0.00871 * (0.76_DKIND * d(i,j,k) * dom)**0.235_DKIND,
+     &               0.041_DKIND)
+                   gammaha_eff(i) = gammaha * pe_eps * myisrf(i)
+                endif
+            endif
+         enddo
+
       endif
 
       if (igammah .gt. 0) then
