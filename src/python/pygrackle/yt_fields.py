@@ -45,6 +45,7 @@ _parameter_map[EnzoDataset] = {
     "use_specific_heating_rate": "use_specific_heating_rate",
     "self_shielding_method": "self_shielding_method",
     "H2_self_shielding": "H2_self_shielding",
+    "H2_photodissociation_heating": "H2_photodissociation_heating",
     "grackle_data_file": "grackle_data_file",
     "UVbackground": "UVbackground",
     "Compton_xray_heating": "Compton_xray_heating",

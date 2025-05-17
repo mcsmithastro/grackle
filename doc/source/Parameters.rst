@@ -415,6 +415,17 @@ For all on/off integer flags, 0 is off and 1 is on.
       field.
     - 3: Use the local Jeans length.
 
+.. c:var:: int H2_photodissociation_heating
+
+   Switch to enable heating from both the UV background dissociation rate 
+   and the H\ :sub:`2`\  dissociation rate given by :c:data:`RT_H2_dissociation_rate`
+   (if present). Rates are from `Kim et. al. (2023) <https://ui.adsabs.harvard.edu/abs/2023ApJS..264...10K/abstract/>`__ eq. 37 and 38 (but the critical density
+   uses `Omukai, 2000 <https://arxiv.org/abs/astro-ph/0003212>`_ eq. 23 for
+   consistency with the H\ :sub:`2`\ formation heating). Default: 0.
+
+    - 1: Heating from photodissociation.
+    - 2: Heating from photodissociation and UV pumping.
+
 .. c:var:: int H2_custom_shielding
 
    Flag to enable the user to provide an additional field which acts as 

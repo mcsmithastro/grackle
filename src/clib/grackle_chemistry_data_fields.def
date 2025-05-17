@@ -188,6 +188,10 @@ ENTRY(self_shielding_method, INT, 0)
    density. Please refer to the grackle documentation for specifics. */
 ENTRY(H2_self_shielding, INT, 0)
 
+/* flag for H2 photodissociation heating. 0 is off, 1 on, 2 adds UV pump heating.
+   Please refer to the grackle documentation for specifics. */
+ENTRY(H2_photodissociation_heating, INT, 0)
+
 /* flag for custom H2-shielding factor. The factor is provided as an additional
    field by the user and is multiplied to the rate for radiative H2
    dissocitation */

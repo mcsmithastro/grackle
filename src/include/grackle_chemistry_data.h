@@ -166,6 +166,9 @@ typedef struct
      Please refer to the grackle documentation for specifics. */
   int H2_self_shielding;
 
+  /* flag for H2 photodissociation heating. 0 is off, 1 on, 2 adds UV pump heating */
+  int H2_photodissociation_heating;
+
   /* flag for custom H2-shielding factor. The factor is provided as an additional field 
      by the user and is multiplied to the rate for radiative H2 dissocitation */
   int H2_custom_shielding;

@@ -30,7 +30,7 @@
      &                hyd01ka, h2k01a, vibha, rotha, rotla, 
      &                gpldla, gphdla, hdltea, hdlowa,
      &                gaHIa, gaH2a, gaHea, gaHpa, gaela, 
-     &                h2ltea, gasgra, iH2shield, iradshield,
+     &                h2ltea, gasgra, iH2shield, ipdheat, iradshield,
      &                avgsighi, avgsighei, avgsigheii,
      &                iradtrans, iradcoupled, iradstep,
      &                irt_honly, kphHI, kphHeI, kphHeII, kdissH2I,
@@ -98,6 +98,7 @@
 !    ipiht    - flag to include photoionization heating (1 = on, 0 = off)
 !    idustrec - flag to include dust recombination cooling (1 = on, -1 = off)
 !    iH2shield - flag for approximate self-shielding of H2 (Wolcott-Green+ 2011)
+!    ipdheat   - flag for H2 photodissociation (>0) and UV pump (>1) heating
 !    iradshield - flag for approximate self-shielding of UV background
 !    avgsighi   - spectrum averaged ionization crs for HI for use with shielding
 !    avgsighei  - spectrum averaged ionization crs for HeI for use with shielding
@@ -172,7 +173,7 @@
      &        ierr, imcool, idust, idustall, idustfield, idustrec,
      &        igammah, ih2optical, iciecool, ithreebody,
      &        ndratec, clnew, iVheat, iMheat, iTfloor,
-     &        iH2shield, iradshield,
+     &        iH2shield, ipdheat, iradshield,
      &        iradtrans, iradcoupled, iradstep, irt_honly,
      &        iisrffield, iH2shieldcustom, itmax, exititmax
 
@@ -553,7 +554,7 @@
      &                     k28shield, k29shield, k30shield, k31shield,
      &                     iradtrans, irt_honly, 
      &                     kphHI, kphHeI, kphHeII,
-     &                     itmask, edot, chunit, dom)
+     &                     itmask, edot, chunit, dom, ipdheat)
 
 !           Find timestep that keeps relative chemical changes below 10%
 
@@ -1760,7 +1761,7 @@ c
      &                     k28shield, k29shield, k30shield, k31shield,
      &                     iradtrans, irt_honly, 
      &                     kphHI, kphHeI, kphHeII,
-     &                     itmask, edot, chunit, dom)
+     &                     itmask, edot, chunit, dom, ipdheat)
 
 ! -------------------------------------------------------------------
 
@@ -1770,7 +1771,7 @@ c
 !     arguments
 
       integer ispecies, is, ie, j, k, in, jn, kn,
-     &        iradtrans, irt_honly
+     &        iradtrans, irt_honly, ipdheat
       real*8 dedot(in), HIdot(in), dom
       real*8 edot(in)
       logical itmask(in), anydust
@@ -1926,6 +1927,17 @@ c
 !     &       + H2I(i,j,k)*( k21(i) * HI(i,j,k)**2.0_DKIND
 !     &                    - k23(i) * H2I(i,j,k))
 !H * (k22 * H^2 - k13 * H_2) + H_2 * (k21 * H^2 - k23 * H_2) */
+
+!           Photodissociation heating, Kim+2023 eq. 38
+            if (ipdheat .gt. 0) then
+               edot(i) = edot(i) + 0.4_DKIND * chunit *
+     &                k31shield(i) * H2I(i,j,k)
+            endif
+!           UV pumping of H2, Kim+2023 eq. 37
+            if (ipdheat .gt. 1) then
+               edot(i) = edot(i) + 16.0_DKIND * chunit * h2heatfac(i) *
+     &                k31shield(i) * H2I(i,j,k)
+            endif
          endif                  ! itmask
          enddo
       endif
