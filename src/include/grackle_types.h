@@ -100,6 +100,8 @@ typedef struct
 
   gr_float *isrf_habing;
 
+  gr_float *cosmic_ray_ionization_rate;
+
 } grackle_field_data;
 
 

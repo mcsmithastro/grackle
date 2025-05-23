@@ -48,6 +48,7 @@
      &                iTfloor, Tfloor_scalar, Tfloor,
      &                iisrffield, isrf_habing, 
      &                iH2shieldcustom, f_shield_custom,
+     &                icosmicray, cosmicrayxi,
      &                itmax, exititmax)
 
 !
@@ -83,6 +84,7 @@
 !    kph*     - photoionization fields
 !    gamma*   - photoheating fields
 !    f_shield_custom - custom H2 shielding factor
+!    cosmicrayxi - primary cosmic ray ionization rate
 !
 !    is,ie    - start and end indices of active region (zero based)
 !    iexpand  - comoving coordinates flag (0 = off, 1 = on)
@@ -108,6 +110,7 @@
 !    iradstep  - flag to indicate intermediate coupled radiative transfer timestep
 !    irt_honly - flag to indicate applying RT ionization and heating to HI only
 !    iH2shieldcustom - flag to indicate a custom H2 shielding factor is provided
+!    icosmicray - flag if cosmic ray ionisation and heating
 
 !    fh       - Hydrogen mass fraction (typically 0.76)
 !    dtoh     - Deuterium to H mass ratio
@@ -175,7 +178,7 @@
      &        ndratec, clnew, iVheat, iMheat, iTfloor,
      &        iH2shield, ipdheat, iradshield,
      &        iradtrans, iradcoupled, iradstep, irt_honly,
-     &        iisrffield, iH2shieldcustom, itmax, exititmax
+     &        iisrffield, iH2shieldcustom, icosmicray, itmax, exititmax
 
       real*8  dx, dt, aye, temstart, temend, gamma,
      &        utim, uxyz, uaye, urho, utem, fh, dtoh, z_solar, 
@@ -208,6 +211,10 @@
 !  Custom H2 shielding factor
 
       R_PREC f_shield_custom(in, jn, kn)
+
+!  Cosmic ray primary ionisation rate
+
+      R_PREC cosmicrayxi(in, jn, kn)
 
 !  Cooling tables (coolings rates as a function of temperature)
 
@@ -306,7 +313,8 @@
      &       k50(in), k51(in), k52(in), k53(in), k54(in),
      &       k55(in), k56(in), k57(in), k58(in),
      &       k13dd(in, 14), h2dust(in),
-     &       ncrn(in), ncrd1(in), ncrd2(in)
+     &       ncrn(in), ncrd1(in), ncrd2(in),
+     &       cr1(in), cr2(in), cr11(in)
 
 !  Cooling/heating row locals
 
@@ -398,6 +406,7 @@
 !$omp&   k50, k51, k52, k53, k54,
 !$omp&   k55, k56, k57, k58, k13dd, h2dust,
 !$omp&   ncrn, ncrd1, ncrd2,
+!$imp&   cr1, cr2, cr11,
 !$omp&   ceHI, ceHeI, ceHeII,
 !$omp&   ciHI, ciHeI, ciHeIS, ciHeII,
 !$omp&   reHII, reHeII1, reHeII2, reHeIII,
@@ -443,9 +452,28 @@
                enddo
             endif
          endif ! end rad trans check (divergent from original code)
-          
-
-
+      
+!        Cosmic rays, set rates for this row (for future, we could
+!        pass these directly into the routine)        
+         do i = is+1, ie + 1
+            if (icosmicray .gt. 0) then
+!                 HI + cr -> HII + e
+                  cr1(i) = cosmicrayxi(i,j,k)
+                  if (ispecies .gt. 1) then
+!                       H2I + cr -> H2II + e
+                        cr2(i) = 2.0_DKIND * cosmicrayxi(i,j,k)
+!                       H2I + cr -> H + H
+                        cr11(i) = 0.22_DKIND * cosmicrayxi(i,j,k)
+                  else
+                        cr2(i) = 0.0_DKIND
+                        cr11(i) = 0.0_DKIND
+                  endif
+            else
+                  cr1(i) = 0.0_DKIND
+                  cr2(i) = 0.0_DKIND
+                  cr11(i) = 0.0_DKIND
+            endif
+         enddo
 !        Set time elapsed to zero for each cell in 1D section
 
          do i = is+1, ie+1
@@ -504,7 +532,8 @@
      &                metDataSize, metCooling, metHeating, clnew,
      &                iVheat, iMheat, Vheat, Mheat,
      &                iTfloor, Tfloor_scalar, Tfloor,
-     &                iisrffield, isrf_habing, itmask)
+     &                iisrffield, isrf_habing, icosmicray, cosmicrayxi,
+     &                itmask)
 
             if (ispecies .gt. 0) then
 
@@ -554,7 +583,8 @@
      &                     k28shield, k29shield, k30shield, k31shield,
      &                     iradtrans, irt_honly, 
      &                     kphHI, kphHeI, kphHeII,
-     &                     itmask, edot, chunit, dom, ipdheat)
+     &                     itmask, edot, chunit, dom, ipdheat,
+     &                     icosmicray, cr1, cr2, cr11)
 
 !           Find timestep that keeps relative chemical changes below 10%
 
@@ -799,7 +829,7 @@
      &                     HMp, H2Ip, H2IIp, DIp, DIIp, HDIp,
      &                     dedot_prev, HIdot_prev,
      &                     iradtrans, irt_honly, 
-     &                     kphHI, kphHeI, kphHeII,
+     &                     kphHI, kphHeI, kphHeII, cr1, cr2, cr11,
      &                     itmask)
 
             endif
@@ -1761,7 +1791,8 @@ c
      &                     k28shield, k29shield, k30shield, k31shield,
      &                     iradtrans, irt_honly, 
      &                     kphHI, kphHeI, kphHeII,
-     &                     itmask, edot, chunit, dom, ipdheat)
+     &                     itmask, edot, chunit, dom, ipdheat,
+     &                     icosmicray, cr1, cr2, cr11)
 
 ! -------------------------------------------------------------------
 
@@ -1771,7 +1802,7 @@ c
 !     arguments
 
       integer ispecies, is, ie, j, k, in, jn, kn,
-     &        iradtrans, irt_honly, ipdheat
+     &        iradtrans, irt_honly, ipdheat, icosmicray
       real*8 dedot(in), HIdot(in), dom
       real*8 edot(in)
       logical itmask(in), anydust
@@ -1786,6 +1817,9 @@ c
 !      Radiative Transfer Fields
       R_PREC  kphHI(in,jn,kn), kphHeI(in,jn,kn), kphHeII(in,jn,kn)
 
+!     Cosmic ray ionization
+      R_PREC cosmicrayxi(in,jn,kn)
+
       real*8 chunit
 
 !     Rate values
@@ -1799,7 +1833,7 @@ c
      &       ncrn(in), ncrd1(in), ncrd2(in), rhoH(in), 
      &       k24shield(in), k25shield(in), k26shield(in),
      &       k28shield(in), k29shield(in), k30shield(in),
-     &       k31shield(in),
+     &       k31shield(in), cr1(in), cr2(in), cr11(in),
      &       k24, k25, k26, k27, k28, k29, k30
 
 !     locals
@@ -1964,8 +1998,20 @@ c
          endif
       endif
 
-      
-
+!     Cosmic ray ionization
+      if (icosmicray .gt. 0) then
+         do i = is+1, ie+1
+            if (itmask(i)) then    
+               HIdot(i) = HIdot(i) - cr1(i) * HI(i,j,k)
+               dedot(i) = dedot(i) + cr1(i) * HI(i,j,k)
+               if (ispecies .gt. 0) then
+!                 cr11 * 0.5 * 2
+                  HIdot(i) = HIdot(i) + cr11(i) * H2I(i,j,k)
+                  dedot(i) = dedot(i) + 0.5 * cr2(i) * H2I(i,j,k)
+               endif
+            endif
+         enddo
+      endif
 
       return
       end
@@ -1991,6 +2037,7 @@ c
      &                     dedot_prev, HIdot_prev,
      &                     iradtrans, irt_honly,
      &                     kphHI, kphHeI, kphHeII,
+     &                     cr1, cr2, cr11,
      &                     itmask)
 c -------------------------------------------------------------------
 
@@ -2015,7 +2062,6 @@ c -------------------------------------------------------------------
 !     Radiation Fields
       R_PREC  kphHI(in,jn,kn), kphHeI(in,jn,kn), kphHeII(in,jn,kn)
 
-
 !     Rate values
 
       real*8 k1 (in), k2 (in), k3 (in), k4 (in), k5 (in),
@@ -2027,7 +2073,7 @@ c -------------------------------------------------------------------
      &       h2dust(in), rhoH(in),
      &       k24shield(in), k25shield(in), k26shield(in),
      &       k28shield(in), k29shield(in), k30shield(in),
-     &       k31shield(in),
+     &       k31shield(in), cr1(in), cr2(in), cr11(in),
      &       k24, k25, k26, k27, k28, k29, k30
 
 !     temporaries (passed in)
@@ -2055,6 +2101,7 @@ c -------------------------------------------------------------------
      &             + k57(i)*HI(i,j,k)
      &             + k58(i)*HeI(i,j,k)/4._DKIND
      &             + k24shield(i)
+     &             + cr1(i)
             if (iradtrans .eq. 1) acoef = acoef + kphHI(i,j,k)
             HIp(i)  = (scoef*dtit(i) + HI(i,j,k))/
      &           (1._DKIND + acoef*dtit(i))
@@ -2077,6 +2124,7 @@ c
      &             + k57(i)*HIp(i)*HIp(i)
      &             + k58(i)*HIp(i)*HeI(i,j,k)/4._DKIND
      &             + k24shield(i)*HIp(i)
+     &             + cr1(i)*HIp(i)
             if (iradtrans .eq. 1) 
      &          scoef = scoef + kphHI(i,j,k)*HIp(i)
             acoef  = k2(i)*de (i,j,k)
@@ -2105,6 +2153,7 @@ c
      &                 + k24shield(i)*HI(i,j,k)
      &                 + k25shield(i)*HeII(i,j,k)/4._DKIND
      &                 + k26shield(i)*HeI(i,j,k)/4._DKIND
+     &                 + cr1(i)*HI(i,j,k)
 
             if ( (iradtrans .eq. 1) .and. ( irt_honly .eq. 0) )
      &          scoef = scoef + kphHI(i,j,k) * HI(i,j,k)
@@ -2197,6 +2246,7 @@ c --- (C) Now do extra 3-species for molecular hydrogen ---
      &             + 2._DKIND*k18(i)* H2II(i,j,k)* de(i,j,k)/2._DKIND
      &             +      k19(i)* H2II(i,j,k)* HM(i,j,k)/2._DKIND
      &             + 2._DKIND*k31shield(i)   * H2I(i,j,k)/2._DKIND
+     &             + 2._DKIND * cr11(i) * H2I(i,j,k)/2._DKIND
 
             acoef  =      k1(i) * de(i,j,k)
      &             +      k7(i) * de(i,j,k)  
@@ -2207,6 +2257,7 @@ c --- (C) Now do extra 3-species for molecular hydrogen ---
      &             +      k57(i)* HI(i,j,k)
      &             +      k58(i)* HeI(i,j,k)/4._DKIND
      &             + k24shield(i)
+     &             + cr1(i)
 
             if (iradtrans .eq. 1) acoef = acoef + kphHI(i,j,k)
 
@@ -2235,6 +2286,7 @@ c --- (C) Now do extra 3-species for molecular hydrogen ---
      &             +    k57(i) * HI(i,j,k) * HI(i,j,k)
      &             +    k58(i) * HI(i,j,k) * HeI(i,j,k)/4._DKIND
      &             + k24shield(i)*HI(i,j,k)
+     &             + cr1(i)*HI(i,j,k)
 
             if (iradtrans .eq. 1) 
      &          scoef = scoef + kphHI(i,j,k) * HI(i,j,k)
@@ -2258,6 +2310,7 @@ c --- (C) Now do extra 3-species for molecular hydrogen ---
      &             + k24shield(i)*HIp(i)
      &             + k25shield(i)*HeIIp(i)/4._DKIND
      &             + k26shield(i)*HeIp(i)/4._DKIND
+     &             + cr1(i) * HIp(i)
 
             if ( (iradtrans .eq. 1) .and. (irt_honly .eq. 0) )
      &          scoef = scoef + kphHI(i,j,k) * HIp(i)
@@ -2285,7 +2338,7 @@ c --- (C) Now do extra 3-species for molecular hydrogen ---
      &            +       k22(i) * HI(i,j,k) * (HI(i,j,k))**2._DKIND)
             acoef = ( k13(i)*HI(i,j,k) + k11(i)*HII(i,j,k)
      &              + k12(i)*de(i,j,k) )
-     &              + k29shield(i) + k31shield(i)
+     &              + k29shield(i) + k31shield(i) + cr2(i) + cr11(i)
 
             if (anydust) then
                scoef = scoef + 2._DKIND * h2dust(i) *
@@ -2312,6 +2365,7 @@ c --- (C) Now do extra 3-species for molecular hydrogen ---
      &                    +   k11(i)*H2Ip(i)/2._DKIND*HIIp(i)
      &                    +   k17(i)*HMp(i)*HIIp(i)
      &                    + k29shield(i)*H2Ip(i)
+     &                    + cr2(i)*H2Ip(i)
      &                    )
      &                 /  ( k10(i)*HIp(i) + k18(i)*dep(i)
      &                    + k19(i)*HMp(i)

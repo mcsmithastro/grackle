@@ -88,6 +88,7 @@ extern void FORTRAN_NAME(solve_rate_cool_g)(
         int *iTfloor, gr_float *Tfloor_scalar, gr_float *Tfloor,
         int *iisrffield, gr_float* isrf_habing, 
         int *iH2shieldcustom, gr_float* f_shield_custom,
+        int *icosmicray, gr_float* cosmicrayxi,
         int *itmax, int *exititmax);
 
 int local_solve_chemistry(chemistry_data *my_chemistry,
@@ -368,6 +369,8 @@ int local_solve_chemistry(chemistry_data *my_chemistry,
     my_fields->isrf_habing,
     &my_chemistry->H2_custom_shielding,
     my_fields->H2_custom_shielding_factor,
+    &my_chemistry->cosmic_ray_ionization,
+    my_fields->cosmic_ray_ionization_rate,
     &my_chemistry->max_iterations,
     &my_chemistry->exit_after_iterations_exceeded);
 

@@ -216,6 +216,9 @@ ENTRY(collisional_ionisation_rates, INT, 1) //Collisional ionisation
 ENTRY(recombination_cooling_rates, INT, 1) //Recombination cooling
 ENTRY(bremsstrahlung_cooling_rates, INT, 1) //Bremsstrahlung cooling
 
+/* flag to use cosmic ray ionization and heating */
+ENTRY(cosmic_ray_ionization, INT, 0)
+
 /* maximum number of subcycle iterations for solve_chemistry */
 ENTRY(max_iterations, INT, 10000)
 

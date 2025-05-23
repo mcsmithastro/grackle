@@ -159,6 +159,8 @@ def _required_extra_fields(my_chemistry):
         my_fields.append("H2_custom_shielding_factor")
     if my_chemistry.use_isrf_field == 1:
         my_fields.append("isrf_habing")
+    if my_chemistry.cosmic_ray_ionization == 1:
+        my_fields.append("cosmic_ray_ionization_rate")
     return my_fields
 
 def _photo_units(my_chemistry):
@@ -166,6 +168,7 @@ def _photo_units(my_chemistry):
 
 
 _field_units = {
+    "cosmic_ray_ionization_rate": ("time_units", "1/s"),
     "H2_self_shielding_length": ("length_units", "cm"),
     "H2_custom_shielding_factor": (None, ""),
     "RT_heating_rate": (None, "erg/s"),

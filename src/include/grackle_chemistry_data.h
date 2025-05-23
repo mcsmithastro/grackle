@@ -192,6 +192,9 @@ typedef struct
   int recombination_cooling_rates; //Recombination cooling
   int bremsstrahlung_cooling_rates; //Bremsstrahlung cooling
 
+  /* flag to add cosmic ray ionization and heating */
+  int cosmic_ray_ionization;
+
   /* maximum number of subcycle iterations for solve_chemistry */
   int max_iterations;
 

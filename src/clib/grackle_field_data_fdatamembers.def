@@ -53,3 +53,5 @@ ENTRY(H2_self_shielding_length)
 ENTRY(H2_custom_shielding_factor)
 
 ENTRY(isrf_habing)
+
+ENTRY(cosmic_ray_ionization_rate)

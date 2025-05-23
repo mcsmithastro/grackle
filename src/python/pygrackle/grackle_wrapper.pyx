@@ -747,6 +747,7 @@ cdef c_field_data setup_field_data(object fc, int[::1] buf,
     my_fields.H2_self_shielding_length = get_field(fc, "H2_self_shielding_length")
     my_fields.H2_custom_shielding_factor = get_field(fc, "H2_custom_shielding_factor")
     my_fields.isrf_habing = get_field(fc, "isrf_habing")
+    my_fields.cosmic_ray_ionization_rate = get_field(fc, "cosmic_ray_ionization_rate")
     return my_fields
 
 def solve_chemistry(fc, my_dt):

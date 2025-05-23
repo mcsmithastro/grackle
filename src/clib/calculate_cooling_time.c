@@ -76,7 +76,7 @@ extern void FORTRAN_NAME(cool_multi_time_g)(
         double *metHeating, int *clnew,
         int *iVheat, int *iMheat, gr_float *Vheat, gr_float *Mheat,
         int *iTfloor, gr_float *Tfloor_scalar, gr_float *Tfloor,
-        int *iisrffield, gr_float* isrf_habing);
+        int *iisrffield, gr_float* isrf_habing, int *icosmicray, gr_float* cosmicrayxi);
 
 int local_calculate_cooling_time(chemistry_data *my_chemistry,
                                  chemistry_data_storage *my_rates,
@@ -292,7 +292,9 @@ int local_calculate_cooling_time(chemistry_data *my_chemistry,
        &my_chemistry->temperature_floor_scalar,
        my_fields->temperature_floor,
        &my_chemistry->use_isrf_field,
-       my_fields->isrf_habing);
+       my_fields->isrf_habing,
+       &my_chemistry->cosmic_ray_ionization,
+       my_fields->cosmic_ray_ionization_rate);
  
   return SUCCESS;
 }

@@ -43,7 +43,7 @@
      &                metDataSize, metCooling, metHeating, clnew,
      &                iVheat, iMheat, Vheat, Mheat,
      &                iTfloor, Tfloor_scalar, Tfloor,
-     &                iisrffield, isrf_habing,
+     &                iisrffield, isrf_habing, icosmicray, cosmicrayxi,
      &                itmask)
 
 !  SOLVE RADIATIVE COOLING/HEATING EQUATIONS
@@ -76,7 +76,7 @@
      &        idust, idustall, idustfield, idustrec,
      &        imetal, igammah, ih2optical, iciecool, clnew,
      &        iVheat, iMheat, iTfloor, iradtrans, iradshield,
-     &        iisrffield
+     &        iisrffield, icosmicray
 
       real*8  aye, temstart, temend, z_solar, fgr,
      &        utem, uxyz, uaye, urho, utim,
@@ -89,7 +89,8 @@
      &        DI(in,jn,kn),  DII(in,jn,kn), HDI(in,jn,kn),
      &        metal(in,jn,kn), dust(in,jn,kn),
      &        Vheat(in,jn,kn), Mheat(in,jn,kn), Tfloor(in,jn,kn),
-     &        photogamma(in,jn,kn), isrf_habing(in,jn,kn)
+     &        photogamma(in,jn,kn), isrf_habing(in,jn,kn),
+     &        cosmicrayxi(in,jn,kn)
       real*8  hyd01ka(nratec), h2k01a(nratec), vibha(nratec), 
      &        rotha(nratec), rotla(nratec), gpldla(nratec),
      &        gphdla(nratec), hdltea(nratec), hdlowa(nratec),
@@ -134,10 +135,11 @@
       real*8 dom, qq, vibl, logtem0, logtem9, dlogtem, zr,
      &       comp1, comp2, 
      &       hdlte1, hdlow1, gamma2, x, fudge, fH2,
-     &       gphdl1, dom_inv, tau, ciefudge,
+     &       gphdl1, dom_inv, tau, ciefudge, uvel,
      &       coolunit, dbase1, tbase1, xbase1,
      &       nH2, nother, nSSh, nratio, nssh_he, nratio_he,
-     &       fSShHI, fSShHeI, pe_eps, pe_X, grbeta
+     &       fSShHI, fSShHeI, pe_eps, pe_X, grbeta,
+     &       crunit, xe, qcr, log_nh
 
 !  Slice locals
  
@@ -189,6 +191,7 @@
       xbase1   = uxyz/(aye*uaye)    ! uxyz is [x]*a      = [x]*[a]*a'        '
       dbase1   = urho*(aye*uaye)**3 ! urho is [dens]/a^3 = [dens]/([a]*a')^3 '
       coolunit = (uaye**5 * xbase1**2 * mh**2) / (tbase1**3 * dbase1)
+      uvel = (uxyz/aye) / utim
       zr       = 1._DKIND/(aye*uaye) - 1._DKIND
       fudge    = 1._DKIND
       iradfield = -1
@@ -197,6 +200,9 @@
 
       comp1 = compa  * (1._DKIND + zr)**4
       comp2 = 2.73_DKIND * (1._DKIND + zr)
+
+!     1 eV per H for CR
+      crunit = (1.60218e-12_DKIND)/(uvel*uvel*mh)
 
 !     Initialize edot
 
@@ -1021,8 +1027,9 @@ c  new (correct) way: (april 4, 2007)
                 if ( tgas(i) > 2.d4 ) then
                    gammaha_eff(i) = 0._DKIND
                 else
-                   pe_eps = max(0.0149 * (0.76_DKIND * d(i,j,k) * dom)**0.235_DKIND,
-     &               0.07_DKIND)
+                   pe_eps = max(0.0149 * 
+     &                (0.76_DKIND * d(i,j,k) * dom)**0.235_DKIND,
+     &                 0.07_DKIND)
                    gammaha_eff(i) = gammaha * pe_eps * myisrf(i)
                 endif
             endif
@@ -1102,6 +1109,39 @@ c  new (correct) way: (april 4, 2007)
             endif
           enddo
         endif
+
+!     --- Cosmic ray heating ---
+      if ((icosmicray .gt. 0) .and. (ispecies .gt. 0)) then
+        do i = is+1, ie+1
+           if ( itmask(i) ) then
+!             Draine 2011
+              xe = de(i,j,k) / rhoH(i)
+              qcr = (6.5_DKIND + 26.4_DKIND * 
+     &         (xe / (xe + 0.07_DKIND))**0.5_DKIND) * HI(i,j,k)
+
+              if (ispecies > 1) then
+!                Krumholz 2014
+                 log_nh = log10(mynh(i))
+                 if (log_nh < 2.0_DKIND) then
+                    qcr = qcr + 10.0_DKIND
+                 else if (log_nh < 4.0_DKIND) then
+                    qcr = qcr + 10.0_DKIND +
+     &                    1.5_DKIND * (log_nh - 2.0_DKIND)
+                 else if (log_nh < 7.0_DKIND) then
+                    qcr = qcr + 13.0_DKIND +
+     &                    (4.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND) 
+                 else if (log_nh < 10.0_DKIND) then
+                    qcr = qcr + 17.0_DKIND +
+     &                    (1.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND)
+                 else
+                    qcr = qcr + 18.0_DKIND
+                 endif
+                 qcr = qcr * H2I(i,j,k)
+              endif
+              edot(i) = edot(i) + cosmicrayxi(i,j,k) * crunit * qcr
+           end if
+        enddo
+      endif
 
 !     --- Cloudy metal cooling and heating ---
 
