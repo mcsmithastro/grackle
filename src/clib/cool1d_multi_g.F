@@ -1143,12 +1143,10 @@ c  new (correct) way: (april 4, 2007)
               else
 !                20 eV per ionisation              
                  edot(i) = edot(i) + 
-     &              (3.20436e-11_DKIND) * cosmicrayxi(i,j,k) * HI(i,j,k)
-     &              / (uvel * uvel * dbase1 * dom)
+     &              20.0_DKIND * cosmicrayxi(i,j,k) * HI(i,j,k) * crunit
                  if (ispecies .gt. 1) then
                     edot(i) = edot(i) + 
-     &              (3.20436e-11_DKIND) * cosmicrayxi(i,j,k) * H2I(i,j,k)
-     &              / (uvel * uvel * dbase1 * dom)
+     &                 20.0_DKIND * cosmicrayxi(i,j,k) * H2I(i,j,k) * crunit
                  endif
               endif
            end if
