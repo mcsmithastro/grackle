@@ -1826,9 +1826,6 @@ c
 !      Radiative Transfer Fields
       R_PREC  kphHI(in,jn,kn), kphHeI(in,jn,kn), kphHeII(in,jn,kn)
 
-!     Cosmic ray ionization
-      R_PREC cosmicrayxi(in,jn,kn)
-
       real*8 chunit
 
 !     Rate values
