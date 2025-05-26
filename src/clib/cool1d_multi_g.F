@@ -1114,31 +1114,43 @@ c  new (correct) way: (april 4, 2007)
       if ((icosmicray .gt. 0) .and. (ispecies .gt. 0)) then
         do i = is+1, ie+1
            if ( itmask(i) ) then
-!             Draine 2011
-              xe = de(i,j,k) / rhoH(i)
-              qcr = (6.5_DKIND + 26.4_DKIND * 
-     &         (xe / (xe + 0.07_DKIND))**0.5_DKIND) * HI(i,j,k)
+              if (icosmicray .gt. 1) then 
+!                Draine 2011
+                 xe = de(i,j,k) / rhoH(i)
+                 qcr = (6.5_DKIND + 26.4_DKIND * 
+     &            (xe / (xe + 0.07_DKIND))**0.5_DKIND) * HI(i,j,k)
 
-              if (ispecies > 1) then
-!                Krumholz 2014
-                 log_nh = log10(mynh(i))
-                 if (log_nh < 2.0_DKIND) then
-                    qcr = qcr + 10.0_DKIND
-                 else if (log_nh < 4.0_DKIND) then
-                    qcr = qcr + 10.0_DKIND +
-     &                    1.5_DKIND * (log_nh - 2.0_DKIND)
-                 else if (log_nh < 7.0_DKIND) then
-                    qcr = qcr + 13.0_DKIND +
-     &                    (4.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND) 
-                 else if (log_nh < 10.0_DKIND) then
-                    qcr = qcr + 17.0_DKIND +
-     &                    (1.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND)
-                 else
-                    qcr = qcr + 18.0_DKIND
+                 if (ispecies .gt. 1) then
+!                   Krumholz 2014
+                    log_nh = log10(mynh(i))
+                    if (log_nh .gt. 2.0_DKIND) then
+                       qcr = qcr + 10.0_DKIND
+                    else if (log_nh .gt. 4.0_DKIND) then
+                       qcr = qcr + 10.0_DKIND +
+     &                       1.5_DKIND * (log_nh - 2.0_DKIND)
+                    else if (log_nh .gt. 7.0_DKIND) then
+                       qcr = qcr + 13.0_DKIND +
+     &                       (4.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND) 
+                    else if (log_nh .gt. 10.0_DKIND) then
+                       qcr = qcr + 17.0_DKIND +
+     &                       (1.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND)
+                    else
+                       qcr = qcr + 18.0_DKIND
+                    endif
+                    qcr = qcr * H2I(i,j,k)
                  endif
-                 qcr = qcr * H2I(i,j,k)
+                 edot(i) = edot(i) + cosmicrayxi(i,j,k) * crunit * qcr
+              else
+!                20 eV per ionisation              
+                 edot(i) = edot(i) + 
+     &              (3.20436e-11_DKIND) * cosmicrayxi(i,j,k) * HI(i,j,k)
+     &              / (uvel * uvel * dbase1 * dom)
+                 if (ispecies .gt. 1) then
+                    edot(i) = edot(i) + 
+     &              (3.20436e-11_DKIND) * cosmicrayxi(i,j,k) * H2I(i,j,k)
+     &              / (uvel * uvel * dbase1 * dom)
+                 endif
               endif
-              edot(i) = edot(i) + cosmicrayxi(i,j,k) * crunit * qcr
            end if
         enddo
       endif
