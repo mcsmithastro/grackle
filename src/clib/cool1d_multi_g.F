@@ -139,7 +139,7 @@
      &       coolunit, dbase1, tbase1, xbase1,
      &       nH2, nother, nSSh, nratio, nssh_he, nratio_he,
      &       fSShHI, fSShHeI, pe_eps, pe_X, grbeta,
-     &       crunit, xe, qcr, log_nh
+     &       crunit, xe, qcrHI, qcrH2I, log_nh
 
 !  Slice locals
  
@@ -1117,29 +1117,34 @@ c  new (correct) way: (april 4, 2007)
               if (icosmicray .gt. 1) then 
 !                Draine 2011
                  xe = de(i,j,k) / rhoH(i)
-                 qcr = (6.5_DKIND + 26.4_DKIND * 
+                 qcrHI = (6.5_DKIND + 26.4_DKIND * 
      &            (xe / (xe + 0.07_DKIND))**0.5_DKIND) * HI(i,j,k)
 
                  if (ispecies .gt. 1) then
 !                   Krumholz 2014
                     log_nh = log10(mynh(i))
                     if (log_nh .gt. 2.0_DKIND) then
-                       qcr = qcr + 10.0_DKIND
+                       qcrH2I = 10.0_DKIND
                     else if (log_nh .gt. 4.0_DKIND) then
-                       qcr = qcr + 10.0_DKIND +
+                       qcrH2I = 10.0_DKIND +
      &                       1.5_DKIND * (log_nh - 2.0_DKIND)
                     else if (log_nh .gt. 7.0_DKIND) then
-                       qcr = qcr + 13.0_DKIND +
-     &                       (4.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND) 
+                       qcrH2I = 13.0_DKIND +
+     &                       (4.0_DKIND / 3.0_DKIND) * 
+     &                       (log_nh - 2.0_DKIND) 
                     else if (log_nh .gt. 10.0_DKIND) then
-                       qcr = qcr + 17.0_DKIND +
-     &                       (1.0_DKIND / 3.0_DKIND) * (log_nh - 2.0_DKIND)
+                       qcrH2I = 17.0_DKIND +
+     &                       (1.0_DKIND / 3.0_DKIND) * 
+     &                       (log_nh - 2.0_DKIND)
                     else
-                       qcr = qcr + 18.0_DKIND
+                       qcrH2I = 18.0_DKIND
                     endif
-                    qcr = qcr * H2I(i,j,k)
+                    qcrH2I = qcrH2I * H2I(i,j,k)
+                 else
+                    qcrH2I = 0.0_DKIND
                  endif
-                 edot(i) = edot(i) + cosmicrayxi(i,j,k) * crunit * qcr
+                 edot(i) = edot(i) + cosmicrayxi(i,j,k) * crunit * 
+     &                       (qcrHI + qcrH2I)
               else
 !                20 eV per ionisation              
                  edot(i) = edot(i) + 
