@@ -314,7 +314,7 @@
      &       k55(in), k56(in), k57(in), k58(in),
      &       k13dd(in, 14), h2dust(in),
      &       ncrn(in), ncrd1(in), ncrd2(in),
-     &       cr1(in), cr2(in), cr10(in), cr11(in), cr12(in)
+     &       cr1(in), cr2(in), cr6(in), cr10(in), cr11(in), cr12(in)
 
 !  Cooling/heating row locals
 
@@ -406,7 +406,7 @@
 !$omp&   k50, k51, k52, k53, k54,
 !$omp&   k55, k56, k57, k58, k13dd, h2dust,
 !$omp&   ncrn, ncrd1, ncrd2,
-!$imp&   cr1, cr2, cr10, cr11, cr12
+!$imp&   cr1, cr2, cr6, cr10, cr11, cr12
 !$omp&   ceHI, ceHeI, ceHeII,
 !$omp&   ciHI, ciHeI, ciHeIS, ciHeII,
 !$omp&   reHII, reHeII1, reHeII2, reHeIII,
@@ -459,6 +459,8 @@
             if (icosmicray .gt. 0) then
 !                 HI + cr -> HII + e
                   cr1(i) = cosmicrayxi(i,j,k)
+!                 HEI + cr -> HEII + e
+                  cr6(i) = 1.1_DKIND * cosmicrayxi(i,j,k)
                   if (ispecies .gt. 1) then
 !                       H2I + cr -> H2II + e
                         cr2(i) = 2.0_DKIND * cosmicrayxi(i,j,k)
@@ -477,6 +479,7 @@
             else
                   cr1(i) = 0.0_DKIND
                   cr2(i) = 0.0_DKIND
+                  cr6(i) = 0.0_DKIND
                   cr10(i) = 0.0_DKIND
                   cr11(i) = 0.0_DKIND
                   cr12(i) = 0.0_DKIND
@@ -592,7 +595,7 @@
      &                     iradtrans, irt_honly, 
      &                     kphHI, kphHeI, kphHeII,
      &                     itmask, edot, chunit, dom, ipdheat,
-     &                     icosmicray, cr1, cr2, cr10, cr11)
+     &                     icosmicray, cr1, cr2, cr6, cr10, cr11)
 
 !           Find timestep that keeps relative chemical changes below 10%
 
@@ -838,7 +841,7 @@
      &                     dedot_prev, HIdot_prev,
      &                     iradtrans, irt_honly, 
      &                     kphHI, kphHeI, kphHeII,
-     &                     cr1, cr2, cr10, cr11, cr12,
+     &                     cr1, cr2, cr6, cr10, cr11, cr12,
      &                     itmask)
 
             endif
@@ -1801,7 +1804,7 @@ c
      &                     iradtrans, irt_honly, 
      &                     kphHI, kphHeI, kphHeII,
      &                     itmask, edot, chunit, dom, ipdheat,
-     &                     icosmicray, cr1, cr2, cr10, cr11)
+     &                     icosmicray, cr1, cr2, cr6, cr10, cr11)
 
 ! -------------------------------------------------------------------
 
@@ -1840,7 +1843,7 @@ c
      &       k24shield(in), k25shield(in), k26shield(in),
      &       k28shield(in), k29shield(in), k30shield(in),
      &       k31shield(in),
-     &       cr1(in), cr2(in), cr10(in), cr11(in), cr12(in),
+     &       cr1(in), cr2(in), cr6(in), cr10(in), cr11(in), cr12(in),
      &       k24, k25, k26, k27, k28, k29, k30
 
 !     locals
@@ -2011,6 +2014,7 @@ c
             if (itmask(i)) then    
                HIdot(i) = HIdot(i) - cr1(i) * HI(i,j,k)
                dedot(i) = dedot(i) + cr1(i) * HI(i,j,k)
+     &                      + cr6(i) * HeI(i,j,k) / 4.0_DKIND
                if (ispecies .gt. 0) then
 !                 cr10 * 2mh per H2, makes 1 H
                   HIdot(i) = HIdot(i) + 0.5 * cr10(i) * H2I(i,j,k)
@@ -2049,7 +2053,7 @@ c
      &                     dedot_prev, HIdot_prev,
      &                     iradtrans, irt_honly,
      &                     kphHI, kphHeI, kphHeII,
-     &                     cr1, cr2, cr10, cr11, cr12,
+     &                     cr1, cr2, cr6, cr10, cr11, cr12,
      &                     itmask)
 c -------------------------------------------------------------------
 
@@ -2086,7 +2090,7 @@ c -------------------------------------------------------------------
      &       k24shield(in), k25shield(in), k26shield(in),
      &       k28shield(in), k29shield(in), k30shield(in),
      &       k31shield(in),
-     &       cr1(in), cr2(in), cr10(in), cr11(in), cr12(in),
+     &       cr1(in), cr2(in), cr6(in), cr10(in), cr11(in), cr12(in),
      &       k24, k25, k26, k27, k28, k29, k30
 
 !     temporaries (passed in)
@@ -2167,6 +2171,7 @@ c
      &                 + k25shield(i)*HeII(i,j,k)/4._DKIND
      &                 + k26shield(i)*HeI(i,j,k)/4._DKIND
      &                 + cr1(i)*HI(i,j,k)
+     &                 + cr6(i)*HeI(i,j,k)/4._DKIND
 
             if ( (iradtrans .eq. 1) .and. ( irt_honly .eq. 0) )
      &          scoef = scoef + kphHI(i,j,k) * HI(i,j,k)
@@ -2200,6 +2205,7 @@ c
          scoef  = k4(i)*HeII(i,j,k)*de(i,j,k)
          acoef  = k3(i)*de(i,j,k)
      &                + k26shield(i)
+     &                + cr6(i)
 
          if ( (iradtrans .eq. 1) .and. (irt_honly .eq. 0))
      &       acoef = acoef + kphHeI(i,j,k)
@@ -2212,6 +2218,7 @@ c
          scoef  = k3(i)*HeIp(i)*de(i,j,k)
      &          + k6(i)*HeIII(i,j,k)*de(i,j,k)
      &          + k26shield(i)*HeIp(i)
+     &          + cr6(i)*HeIp(i)
      
          if ( (iradtrans .eq. 1) .and. (irt_honly .eq. 0))
      &       scoef = scoef + kphHeI(i,j,k)*HeIp(i)
@@ -2327,6 +2334,7 @@ c --- (C) Now do extra 3-species for molecular hydrogen ---
      &             + k25shield(i)*HeIIp(i)/4._DKIND
      &             + k26shield(i)*HeIp(i)/4._DKIND
      &             + cr1(i) * HIp(i)
+     &             + cr6(i) * HeIp(i)/4._DKIND
 
             if ( (iradtrans .eq. 1) .and. (irt_honly .eq. 0) )
      &          scoef = scoef + kphHI(i,j,k) * HIp(i)
