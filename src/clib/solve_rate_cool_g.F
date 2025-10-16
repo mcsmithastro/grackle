@@ -576,6 +576,8 @@
      &              1.0e6_DKIND) then
                   dedot(i) = tiny8
                   HIdot(i) = tiny8
+! DNELSON ADDED (see https://github.com/grackle-project/grackle/issues/19):                  
+                  edot(i) = tiny8
                endif
 
 !              If the iteration count is high then take the smaller of
@@ -652,7 +654,10 @@
                  dtit(i) = min(olddtit*1.5_DKIND, dtit(i))
               endif
 
+! DNELSON
 #define DONT_WRITE_COOLING_DEBUG
+! #define WRITE_COOLING_DEBUG
+! DNELSON END
 #ifdef WRITE_COOLING_DEBUG
 !              Output some debugging information if required
 
@@ -731,6 +736,10 @@
                  write(6,*) 'HUGE dtit :: ', energy, edot(i), dtit(i),
      &                      dt, ttot(i), abs(0.1_DKIND*energy/edot(i)), 
      &                      real(abs(0.1_DKIND*energy/edot(i)), DKIND)
+! DNELSON START: immediate exit, since we head into a segfault
+                 ierr = 0
+                 return
+! DNELSON END                
 #ifdef _OPENMP
 !$omp end critical
 #endif
@@ -831,14 +840,20 @@
 #ifdef _OPENMP
 !$omp critical
 #endif
-	    write(0,*) 'inside if statement solve rate cool:',is,ie
-            write(6,*) 'MULTI_COOL iter > ',itmax,' at j,k =',j,k
-            write(0,*) 'FATAL error (2) in MULTI_COOL'
-            write(0,'(" dt = ",1pe10.3," ttmin = ",1pe10.3)') dt, ttmin
-            write(0,'((16(1pe8.1)))') (dtit(i),i=is+1,ie+1)
-            write(0,'((16(1pe8.1)))') (ttot(i),i=is+1,ie+1)
-            write(0,'((16(1pe8.1)))') (edot(i),i=is+1,ie+1)
-            write(0,'((16(l3)))') (itmask(i),i=is+1,ie+1)
+
+! DNELSON START (debug failure cases)
+!            write(0,*) 'inside if statement solve rate cool:',is,ie
+!            write(0,*) 'MULTI_COOL iter > ',itmax,' at j,k =',j,k
+!            write(0,*) 'FATAL error (2) in MULTI_COOL'
+!            write(0,'(" dt = ",1pe10.3," ttmin = ",1pe10.3)') dt, ttmin
+!            write(0,'((16(1pe8.1)))') (dtit(i),i=is+1,ie+1)
+!            write(0,'((16(1pe8.1)))') (ttot(i),i=is+1,ie+1)
+!            write(0,'((16(1pe8.1)))') (edot(i),i=is+1,ie+1)
+!            write(0,'((16(l3)))') (itmask(i),i=is+1,ie+1)
+
+! DNELSON START (debug failure cases)
+!            ierr = 0
+! DNELSON END
 
             if (exititmax .eq. 1) then
                ierr = 0
@@ -849,15 +864,18 @@
 c            WARNING_MESSAGE
          endif
 
-         if (iter .gt. itmax/2) then
-#ifdef _OPENMP
-!$omp critical
-#endif
-            write(6,*) 'MULTI_COOL iter,j,k =',iter,j,k
-#ifdef _OPENMP
-!$omp end critical
-#endif
-         end if
+! DNELSON START
+!         if (iter .gt. itmax/2) then
+!#ifdef _OPENMP
+!!$omp critical
+!#endif
+!            write(0,*) 'MULTI_COOL iter,j,k =',iter,j,k
+!#ifdef _OPENMP
+!!$omp end critical
+!#endif
+!         end if
+! DNELSON END
+
 !     
 !     Next j,k
 !     

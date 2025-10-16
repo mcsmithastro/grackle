@@ -217,7 +217,8 @@ ENTRY(recombination_cooling_rates, INT, 1) //Recombination cooling
 ENTRY(bremsstrahlung_cooling_rates, INT, 1) //Bremsstrahlung cooling
 
 /* maximum number of subcycle iterations for solve_chemistry */
-ENTRY(max_iterations, INT, 10000)
+/* DNELSON */
+ENTRY(max_iterations, INT, 1000)
 
 /* flag to exit if max iterations exceeded */
 ENTRY(exit_after_iterations_exceeded, INT, FALSE)

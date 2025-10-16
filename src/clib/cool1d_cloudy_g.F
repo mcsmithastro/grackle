@@ -123,6 +123,13 @@
 
             log_n_h(i) = log10(rhoH(i) * dom)
 
+! DNELSON ADDED clip at 1e7 (corresponding to grid_cooling_UVB=FG20_ext.hdf5)
+! (no dens extrapolation, this leaves to bad edot values and
+! oscillations/convergence failures in sub-cycling iterations)
+            if(log_n_h(i) .gt. 7.0_DKIND)
+     &          log_n_h(i) = 7.0
+! DNELSON END
+
 !           Calculate index for redshift dimension
 
             if (clGridRank .gt. 2) then

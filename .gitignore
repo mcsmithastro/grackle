@@ -47,3 +47,4 @@ src/python/pygrackle.egg-info/*
 src/python/pygrackle/*.c
 src/python/tests/test_answers
 doc/build
+build/

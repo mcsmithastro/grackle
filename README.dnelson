@@ -1,0 +1,5 @@
+CC=/mpcdf/soft/SLE_15/packages/x86_64/gcc/12.1.0/bin/gcc cmake -DCMAKE_INSTALL_PREFIX=/u/dnelson/.local -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -B build
+cmake --build build
+cmake --install build
+
+makes shared libraries and copies them to ~/.local/lib64/ as specified in the AREPO systypes.makefile
