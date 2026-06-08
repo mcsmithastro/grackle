@@ -1123,16 +1123,16 @@ c  new (correct) way: (april 4, 2007)
                  if (ispecies .gt. 1) then
 !                   Krumholz 2014
                     log_nh = log10(mynh(i))
-                    if (log_nh .gt. 2.0_DKIND) then
+                    if (log_nh .lt. 2.0_DKIND) then
                        qcrH2I = 10.0_DKIND
-                    else if (log_nh .gt. 4.0_DKIND) then
+                    else if (log_nh .lt. 4.0_DKIND) then
                        qcrH2I = 10.0_DKIND +
      &                       1.5_DKIND * (log_nh - 2.0_DKIND)
-                    else if (log_nh .gt. 7.0_DKIND) then
+                    else if (log_nh .lt. 7.0_DKIND) then
                        qcrH2I = 13.0_DKIND +
      &                       (4.0_DKIND / 3.0_DKIND) * 
      &                       (log_nh - 2.0_DKIND) 
-                    else if (log_nh .gt. 10.0_DKIND) then
+                    else if (log_nh .lt. 10.0_DKIND) then
                        qcrH2I = 17.0_DKIND +
      &                       (1.0_DKIND / 3.0_DKIND) * 
      &                       (log_nh - 2.0_DKIND)
